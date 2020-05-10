@@ -1,5 +1,7 @@
 import numpy as np 
 
+
+#test cases
 # problem = np.array([[0,6,0,0,8,0,4,2,0],
 #                     [0,1,5,0,6,0,3,7,8],
 #                     [0,0,0,4,0,0,0,6,0],
@@ -44,39 +46,12 @@ problem = np.array([[0,4,7,0,0,0,9,0,1],
                     [0,0,1,0,0,0,0,0,0]])                    
 
 
+#make a copy of the problem puzzle
 solution = np.copy(problem)
 
 
-def valid_row(row):
-    for i in range(9):
-        if np.count_nonzero(row == i+1) > 1:
-            return False
-    return True
-
-
-def valid_column(column):
-    for i in range(9):
-        if np.count_nonzero(column == i+1) > 1:
-            return False
-    return True
-
-
-def valid_box(box):
-    for i in range(9):
-        if np.count_nonzero(box == i+1) > 1:
-            return False
-    return True
-
-
-def row(i, puzzle): #return row i
-    return puzzle[i]
-
-
-def column(j, puzzle): #return column i
-    return puzzle[:,j]
-
-
-def box(i, puzzle): #return box i 
+#returns the elements in box i
+def box(i, puzzle): 
     ''' For box 1 return first three rows and first three columns,
         For box 2 return first three rows and second three columns,
         For box 3 return first three rows and third three columns,
@@ -96,6 +71,7 @@ def box(i, puzzle): #return box i
         return puzzle[6:9,col:col+3]
 
 
+#returns which box the i,j coordinate corresponds to
 def which_box(i,j):
     if i < 3:
         if j < 3:
@@ -120,63 +96,7 @@ def which_box(i,j):
             return 9
 
 
-def valid(puzzle): #currently not used
-    for i in range(9):
-        if not valid_row(row(i, puzzle)) or not valid_column(column(i, puzzle)) or not valid_box(box(i, puzzle)):
-            return False
-    return True
-
-
-def valid_element(i,j,puzzle):
-    if not valid_row(row(i,puzzle)) or not valid_column(column(i,puzzle)) or not valid_box(box(which_box(i,j),puzzle)):
-        return False
-    return True
-
-
-def valid_solution(): #currently not used
-    if (not np.count_nonzero(solution == 0)) and valid():
-        return True
-    return False
-
-
-def valid_elements(i,j):
-    if solution[i][j] != 0:
-        return [solution[i][j]]
-    possible = []
-    test = np.copy(solution)
-    for n in range(9):
-        test[i][j] = n+1
-        row_test = row(i, test)
-        column_test = column(j, test)
-        box_test = box(which_box(i,j), test)
-        if valid_row(row_test) and valid_column(column_test) and valid_box(box_test):
-            possible.append(n+1)
-    return possible
-
-
-def possible_elements():
-    elements = {}
-    for i in range(9):
-        for j in range(9):
-            elements["{}_{}".format(i,j)] = valid_elements(i,j)
-    return elements
-
-
-def solve():
-    current = np.count_nonzero(solution == 0)
-    previous = current+1
-    while current < previous:
-        previous = current
-        elements = possible_elements()
-        for i in range(9):
-            for j in range(9):
-                values = elements["{}_{}".format(i,j)]
-                if len(values) == 1:
-                    solution[i][j] = values[0]
-        current = np.count_nonzero(solution == 0)
-    return solution
-
-
+#checks to see if element is in the row
 def used_in_row(puzzle,row,num):
     for i in range(9):
         if (puzzle[row][i] == num):
@@ -184,6 +104,7 @@ def used_in_row(puzzle,row,num):
     return False
 
 
+#checks to see if element is in the column
 def used_in_col(puzzle,col,num):
     for i in range(9):
         if (puzzle[i][col] == num):
@@ -191,16 +112,20 @@ def used_in_col(puzzle,col,num):
     return False
 
 
+#checks to see if element is in the box
 def used_in_box(puzzle,row,col,num):
     if num in box(which_box(row,col),puzzle):
         return True
     return False
 
 
+#checks to see if element is in the row, column, or box
 def used(puzzle,row,col,num):
     return used_in_row(puzzle,row,num) or used_in_col(puzzle,col,num) or used_in_box(puzzle,row,col,num)
 
 
+#checks if there is an empty cell in the puzzle and updates the 
+#coordinates of the first empty cell
 def find_empty(puzzle, l):
     for row in range(9):
         for col in range(9):
@@ -211,19 +136,24 @@ def find_empty(puzzle, l):
     return False
 
 
+#solve puzzle through backtracking algorithm
 def backtracking(puzzle):
+    #initialize coordinates of empty cell
     l = [0,0]
+    #finds first empty cell
     if not find_empty(puzzle,l):
-        return True
-    row = l[0]
-    col = l[1]
+        return True #done (recursion stopping point)
+    row = l[0] #row index of empty cell
+    col = l[1] #column index of empty cell
     for i in range(1,10):
-        if not used(puzzle,row,col,i):
+        #looks to see if element is valid in the empty cell location
+        if not used(puzzle,row,col,i): 
             puzzle[row][col] = i
             if backtracking(puzzle):
-                return True
-            puzzle[row][col] = 0
-    return False
+                return True #no more empty cells (done)
+            puzzle[row][col] = 0 
+    return False #condition to initialize backtracking
+
 
 if __name__ == '__main__':
     if backtracking(solution):
